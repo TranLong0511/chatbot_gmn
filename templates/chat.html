@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Chatbot Interface</title>
+    <link rel="stylesheet" href="\static\style.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2>ChatBot</h2>
+        </div>
+        <div id="chat-box" class="chat-box">
+            
+        </div>
+        <div class="input-container">
+            <input id="user-input" type="text" placeholder="Nhập tin nhắn của bạn..." autofocus>
+            <button id="send-btn"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $("#send-btn").click(function() {
+                var userMessage = $("#user-input").val().trim();
+
+                if (userMessage !== "") {
+                    appendMessage("user", userMessage);  
+                    $("#user-input").val("");  
+
+                    $.ajax({
+                        url: "/send_message",
+                        method: "POST",
+                        contentType: "application/json",
+                        data: JSON.stringify({ message: userMessage }),
+                        success: function(response) {
+                            var botMessage = response.response;
+                            appendMessage("bot", botMessage);  
+
+                            
+                            $("#chat-box").scrollTop($("#chat-box")[0].scrollHeight);
+                        }
+                    });
+                }
+            });
+
+            
+            $("#user-input").keypress(function(event) {
+                if (event.which === 13) {
+                    $("#send-btn").click();
+                }
+            });
+
+            
+            function appendMessage(sender, message) {
+                var currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                var avatar = sender === "user" ? "👤" : "<img src='https://img.icons8.com/color/48/000000/robot.png' alt='Bot Avatar' class='avatar'>";
+                var msgClass = sender === "user" ? "user-message" : "bot-message";
+                var messageHTML = `
+                    <div class="message-container ${msgClass}">
+                        <div class="avatar">${avatar}</div>
+                        <div class="message-bubble">
+                            <p>${message}</p>
+                            <span class="time">${currentTime}</span>
+                        </div>
+                    </div>
+                `;
+                $("#chat-box").append(messageHTML);
+            }
+        });
+    </script>
+</body>
+</html>
